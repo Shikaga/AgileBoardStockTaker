@@ -16,6 +16,12 @@
 		<div id="main"></div>
 		<script type="text/jsx">
 			/** @jsx React.DOM */
+			var IdInput = React.createClass({
+				render: function() {
+					return <input value={this.props.issueId}/>
+				}
+			});
+
 			var ColumnLi = React.createClass({
 				onClick: function() {
 					this.props.onClick(this.props.name);
@@ -53,32 +59,34 @@
 
 			var IssuePanel = React.createClass({
 				render: function() {
-					return <div className="panel panel-default">
-						<div className="panel-body">
-							<span>CSAN-729</span>
-							<ColumnSelector/>
+					if (this.props.issueId) {
+						return <div className="panel panel-default">
+							<div className="panel-body">
+								<span>{this.props.issueId}</span>
+								<ColumnSelector/>
+							</div>
 						</div>
-					</div>
+					} else {
+						return <div></div>
+					}
 				}
 			});
 
 			var IssuesPanel = React.createClass({
 				render: function() {
-					var issues = [];
-					issues.push(<IssuePanel/>);
-					return <div>{issues}</div>
+					return <div><IssuePanel issueId={this.props.issueId}></IssuePanel></div>
 				}
 			});
 
 			var NumberDiv = React.createClass({
 				doneClicked: function() {
-
+					this.props.doneClicked();
 				},
 				completeClicked: function() {
 
 				},
-				numberClicked:function() {
-
+				numberClicked:function(number) {
+					this.props.numberClicked(number);
 				},
 				render: function() {
 					var numberRows = [];
@@ -110,17 +118,35 @@
 			var NumberButton = React.createClass({
 				render: function() {
 					var onClick = function() {
-						this.props.buttonClicked(this.props.number);
+						this.props.buttonClicked(this.props.text);
 					}.bind(this);
 					return <div className="col-md-4"><button className="btn btn-default btn-block" onClick={onClick}>{this.props.text}</button></div>
 				}
 			});
 
 			var AgileBoardStockTaker = React.createClass({
+				getInitialState: function() {
+					return {
+						issueId: "",
+						selectedIssueId: null
+					}
+				},
+				doneClicked: function() {
+					this.setState({
+						selectedIssueId: this.state.issueId,
+						issueId: ""
+					});
+				},
+				numberClicked: function(number) {
+					this.setState({
+						issueId: this.state.issueId + number
+					})
+				},
 				render: function() {
 					return <div className="container">
-						<IssuesPanel/>
-						<NumberDiv/>
+						<IssuesPanel issueId={this.state.selectedIssueId}/>
+						<IdInput issueId={this.state.issueId}/>
+						<NumberDiv numberClicked={this.numberClicked} doneClicked={this.doneClicked}/>
 					</div>;
 				}
 			});
