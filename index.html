@@ -57,10 +57,12 @@
 					return {selectedText: "Awaiting Test"}
 				},
 				onClick: function(text) {
-					this.setState({
-						selectedText: text
-					});
-					this.props.columnChanged(text);
+					if (text !== this.state.selectedText) {
+						this.setState({
+							selectedText: text
+						});
+						this.props.columnChanged(text);
+					}
 				},
 				render: function() {
 					var optionStrings = ['Backlog', 'Development', 'Code Review', 'Awaiting Test', 'In Test', 'Done'];
