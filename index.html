@@ -16,6 +16,27 @@
 		<div id="main"></div>
 		<script type="text/jsx">
 			/** @jsx React.DOM */
+			var ChangedIssuePanel = React.createClass({
+				render: function() {
+					return <div>{this.props.issue.issueId} - {this.props.issue.columnName}</div>
+				}
+			});
+
+			var ChangedIssuesPanel = React.createClass({
+				render: function() {
+					if (this.props.issues) {
+
+						var issues = [];
+						this.props.issues.forEach(function(issue) {
+							issues.push(<ChangedIssuePanel issue={issue}></ChangedIssuePanel>);
+						});
+						return <div>{issues}</div>
+					} else {
+						return <div></div>
+					}
+				}
+			});
+
 			var IdInput = React.createClass({
 				render: function() {
 					return <input value={this.props.issueId}/>
@@ -39,6 +60,7 @@
 					this.setState({
 						selectedText: text
 					});
+					this.props.columnChanged(text);
 				},
 				render: function() {
 					var optionStrings = ['Backlog', 'Development', 'Code Review', 'Awaiting Test', 'In Test', 'Done'];
@@ -58,12 +80,15 @@
 			});
 
 			var IssuePanel = React.createClass({
+				columnChanged: function(columnName) {
+					this.props.issueChanged({issueId: this.props.issueId, columnName: columnName});
+				},
 				render: function() {
 					if (this.props.issueId) {
 						return <div className="panel panel-default">
 							<div className="panel-body">
 								<span>{this.props.issueId}</span>
-								<ColumnSelector/>
+								<ColumnSelector columnChanged={this.columnChanged}/>
 							</div>
 						</div>
 					} else {
@@ -74,7 +99,7 @@
 
 			var IssuesPanel = React.createClass({
 				render: function() {
-					return <div><IssuePanel issueId={this.props.issueId}></IssuePanel></div>
+					return <div><IssuePanel issueChanged={this.props.issueChanged} issueId={this.props.issueId}></IssuePanel></div>
 				}
 			});
 
@@ -128,7 +153,8 @@
 				getInitialState: function() {
 					return {
 						issueId: "",
-						selectedIssueId: null
+						selectedIssueId: null,
+						issuesChanged: []
 					}
 				},
 				doneClicked: function() {
@@ -142,9 +168,15 @@
 						issueId: this.state.issueId + number
 					})
 				},
+				issueChanged: function(data) {
+					this.setState({
+						issuesChanged: this.state.issuesChanged.concat(data)
+					});
+				},
 				render: function() {
 					return <div className="container">
-						<IssuesPanel issueId={this.state.selectedIssueId}/>
+						<IssuesPanel issueChanged={this.issueChanged} issueId={this.state.selectedIssueId}/>
+						<ChangedIssuesPanel issues={this.state.issuesChanged}></ChangedIssuesPanel>
 						<IdInput issueId={this.state.issueId}/>
 						<NumberDiv numberClicked={this.numberClicked} doneClicked={this.doneClicked}/>
 					</div>;
