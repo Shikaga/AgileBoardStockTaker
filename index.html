@@ -1,0 +1,131 @@
+<html>
+	<head>
+		<title>Agile Board Stock Taker</title>
+		<script src="lib/react.js"></script>
+		<script src="lib/jsxTransformer.js"></script>
+		<script src="lib/jquery-1.11.1.min.js"></script>
+		<script src="lib/bootstrap-3.2.0-dist/js/bootstrap.min.js"></script>
+		<link href="lib/bootstrap-3.2.0-dist/css/bootstrap.css" rel="stylesheet">
+		<style>
+			.number-btn {
+				width: 30%
+			}
+		</style>
+	</head>
+	<body>
+		<div id="main"></div>
+		<script type="text/jsx">
+			/** @jsx React.DOM */
+			var ColumnLi = React.createClass({
+				onClick: function() {
+					this.props.onClick(this.props.name);
+				},
+				render: function() {
+					return <li><a href="#" onClick={this.onClick}>{this.props.name}</a></li>
+				}
+			});
+
+			var ColumnSelector = React.createClass({
+				getInitialState: function() {
+					return {selectedText: "Awaiting Test"}
+				},
+				onClick: function(text) {
+					this.setState({
+						selectedText: text
+					});
+				},
+				render: function() {
+					var optionStrings = ['Backlog', 'Development', 'Code Review', 'Awaiting Test', 'In Test', 'Done'];
+					var options = [];
+					optionStrings.forEach(function(optionString) {
+						options.push(<ColumnLi onClick={this.onClick} name={optionString}></ColumnLi>);
+					 }.bind(this));
+					return <span className="btn-group">
+						<button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown">
+							{this.state.selectedText}<span className="caret"></span>
+						</button>
+						<ul className="dropdown-menu" role="menu">
+							{options}
+						</ul>
+					</span>
+				}
+			});
+
+			var IssuePanel = React.createClass({
+				render: function() {
+					return <div className="panel panel-default">
+						<div className="panel-body">
+							<span>CSAN-729</span>
+							<ColumnSelector/>
+						</div>
+					</div>
+				}
+			});
+
+			var IssuesPanel = React.createClass({
+				render: function() {
+					var issues = [];
+					issues.push(<IssuePanel/>);
+					return <div>{issues}</div>
+				}
+			});
+
+			var NumberDiv = React.createClass({
+				doneClicked: function() {
+
+				},
+				completeClicked: function() {
+
+				},
+				numberClicked:function() {
+
+				},
+				render: function() {
+					var numberRows = [];
+					for (var i=0; i < 3; i++) {
+						var buttons = [];
+						for (var j=1; j < 4; j++) {
+							buttons.push(<NumberButton buttonClicked={this.numberClicked} text={i*3+j}></NumberButton>);
+						}
+						numberRows.push(<ButtonRow buttonClicked={this.numberClicked} buttons={buttons}></ButtonRow>);
+					}
+					var buttons = [];
+					var zero = 0;
+					buttons.push(<NumberButton buttonClicked={this.numberClicked} text={zero}></NumberButton>);
+					buttons.push(<NumberButton buttonClicked={this.doneClicked} text="Done"></NumberButton>);
+					buttons.push(<NumberButton buttonClicked={this.completeClicked} text="Complete"></NumberButton>);
+					numberRows.push(<ButtonRow buttons={buttons}></ButtonRow>);
+
+					return <div><div className="row">{numberRows}</div></div>;
+				}
+			});
+
+			var ButtonRow = React.createClass({
+				render: function() {
+
+					return <div className="row">{this.props.buttons}</div>
+				}
+			});
+
+			var NumberButton = React.createClass({
+				render: function() {
+					var onClick = function() {
+						this.props.buttonClicked(this.props.number);
+					}.bind(this);
+					return <div className="col-md-4"><button className="btn btn-default btn-block" onClick={onClick}>{this.props.text}</button></div>
+				}
+			});
+
+			var AgileBoardStockTaker = React.createClass({
+				render: function() {
+					return <div className="container">
+						<IssuesPanel/>
+						<NumberDiv/>
+					</div>;
+				}
+			});
+
+			React.renderComponent(<AgileBoardStockTaker/>, document.getElementById('main'));
+		</script>
+	</body>
+</html>
