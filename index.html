@@ -1,11 +1,13 @@
 <html>
 	<head>
 		<title>Agile Board Stock Taker</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0 user-scalable=no" />
 		<script src="lib/react.js"></script>
 		<script src="lib/jsxTransformer.js"></script>
 		<script src="lib/jquery-1.11.1.min.js"></script>
 		<script src="lib/bootstrap-3.2.0-dist/js/bootstrap.min.js"></script>
 		<link href="lib/bootstrap-3.2.0-dist/css/bootstrap.css" rel="stylesheet">
+
 		<style>
 			.number-btn {
 				width: 30%
@@ -117,7 +119,11 @@
 					return {};
 				},
 				render: function() {
-					return <div><IssuePanel issueChanged={this.props.issueChanged} issueId={this.props.issueId}></IssuePanel></div>
+					var style = {
+						margin: "20px",
+						minHeight: "150px"
+					}
+					return <div style={style}><IssuePanel issueChanged={this.props.issueChanged} issueId={this.props.issueId}></IssuePanel></div>
 				}
 			});
 
@@ -163,7 +169,10 @@
 					var onClick = function() {
 						this.props.buttonClicked(this.props.text);
 					}.bind(this);
-					return <div className="col-md-4"><button className="btn btn-default btn-block" onClick={onClick}>{this.props.text}</button></div>
+					var style = {
+						height: "70px"
+					}
+					return <div className="col-xs-4 col-md-4"><button style={style} className="btn btn-default btn-block" onClick={onClick}>{this.props.text}</button></div>
 				}
 			});
 
@@ -240,11 +249,43 @@
 			}
 
 			var issueHandler = new IssueHandler();
-			issueHandler.addIssue({id: "CSAN-111", column: "In Development"});
+			/*issueHandler.addIssue({id: "CSAN-111", column: "In Development"});
 			issueHandler.addIssue({id: "CSAN-112", column: "Awaiting QA"});
 			issueHandler.addIssue({id: "CSAN-113", column: "Code Review"});
 			issueHandler.addIssue({id: "CSAN-114", column: "Backlog"});
-			issueHandler.addIssue({id: "CSAN-115", column: "In Test"});
+			issueHandler.addIssue({id: "CSAN-115", column: "In Test"});*/
+			debugger;
+			getDataWithJSON = function(callback, requestUrl) {
+				var xhr = new XMLHttpRequest();
+				xhr.open("GET", "https://cors-anywhere.herokuapp.com/" + requestUrl)
+				if (this.username !== "") {
+					this.setAuthorizationHeader(xhr);
+				}
+				xhr.setRequestHeader("x-requested-with", "love");
+				xhr.send();
+				xhr.onload = function(response) {
+					if (this.status === 401) {
+						callback(this.status);
+					} else {
+						var data = JSON.parse(response.target.response);
+						callback(data);
+					}
+				}
+			};
+
+			setAuthorizationHeader = function(xhr) {
+			var username = "username";
+			var password = "password";
+			var authHeader = "Basic "+btoa(username + ":" + password);
+			xhr.setRequestHeader("Authorization", authHeader);
+			}
+			getDataWithJSON(function(data) {
+				data.issues.forEach(function(issue) {
+					issueHandler.addIssue({id: issue.key, column: issue.statusName});
+				});
+				debugger;
+			}, "https://jira.caplin.com/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=63");
+
 		</script>
 	</body>
 </html>
