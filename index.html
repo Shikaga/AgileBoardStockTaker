@@ -54,7 +54,8 @@
 
 			var ColumnSelector = React.createClass({
 				getInitialState: function() {
-					return {selectedText: "Awaiting Test"}
+					console.log("!!!");
+					return {selectedText: this.props.selected}
 				},
 				onClick: function(text) {
 					if (text !== this.state.selectedText) {
@@ -82,17 +83,28 @@
 			});
 
 			var IssuePanel = React.createClass({
+				getInitialState: function() {
+					console.log("XXX");
+					return {
+
+					};
+				},
 				columnChanged: function(columnName) {
 					this.props.issueChanged({issueId: this.props.issueId, columnName: columnName});
 				},
 				render: function() {
 					if (this.props.issueId) {
-						return <div className="panel panel-default">
-							<div className="panel-body">
-								<span>{this.props.issueId}</span>
-								<ColumnSelector columnChanged={this.columnChanged}/>
+						var issue = issueHandler.getIssue(this.props.issueId);
+						if (issue) {
+							return <div className="panel panel-default">
+								<div className="panel-body">
+									<span>{issue.id}</span>
+									<ColumnSelector columnChanged={this.columnChanged} selected={issue.column}></ColumnSelector>
+								</div>
 							</div>
-						</div>
+						} else {
+							return <div></div>
+						}
 					} else {
 						return <div></div>
 					}
@@ -100,6 +112,10 @@
 			});
 
 			var IssuesPanel = React.createClass({
+				getInitialState: function() {
+					console.log("YYY");
+					return {};
+				},
 				render: function() {
 					return <div><IssuePanel issueChanged={this.props.issueChanged} issueId={this.props.issueId}></IssuePanel></div>
 				}
@@ -110,7 +126,7 @@
 					this.props.doneClicked();
 				},
 				completeClicked: function() {
-
+					this.props.completeClicked();
 				},
 				numberClicked:function(number) {
 					this.props.numberClicked(number);
@@ -156,13 +172,20 @@
 					return {
 						issueId: "",
 						selectedIssueId: null,
-						issuesChanged: []
+						issuesChanged: [],
+						showChanged: false
 					}
 				},
 				doneClicked: function() {
 					this.setState({
 						selectedIssueId: this.state.issueId,
 						issueId: ""
+					});
+				},
+				completeClicked: function() {
+					console.log("asdf");
+					this.setState({
+						showChanged: true
 					});
 				},
 				numberClicked: function(number) {
@@ -175,17 +198,53 @@
 						issuesChanged: this.state.issuesChanged.concat(data)
 					});
 				},
+				moreClicked: function() {
+					this.setState({
+						showChanged: false
+					});
+				},
 				render: function() {
-					return <div className="container">
-						<IssuesPanel issueChanged={this.issueChanged} issueId={this.state.selectedIssueId}/>
-						<ChangedIssuesPanel issues={this.state.issuesChanged}></ChangedIssuesPanel>
-						<IdInput issueId={this.state.issueId}/>
-						<NumberDiv numberClicked={this.numberClicked} doneClicked={this.doneClicked}/>
-					</div>;
+					if (!this.state.showChanged) {
+						return <div className="container">
+							<IssuesPanel issueChanged={this.issueChanged} issueId={this.state.selectedIssueId}></IssuesPanel>
+							<IdInput issueId={this.state.issueId}></IdInput>
+							<NumberDiv numberClicked={this.numberClicked} completeClicked={this.completeClicked} doneClicked={this.doneClicked}></NumberDiv>
+						</div>;
+					} else {
+						return <div className="container">
+							<ChangedIssuesPanel issues={this.state.issuesChanged}></ChangedIssuesPanel>
+							<NumberButton buttonClicked={this.moreClicked} text="Add More"></NumberButton>
+						</div>
+					}
 				}
 			});
 
 			React.renderComponent(<AgileBoardStockTaker/>, document.getElementById('main'));
+
+			function IssueHandler() {
+				this.issues = [];
+			}
+
+			IssueHandler.prototype.addIssue = function(issue) {
+				this.issues.push(issue);
+			}
+
+			IssueHandler.prototype.getIssue = function(issueId) {
+				for (var i=0; i < this.issues.length; i++) {
+					var issue = this.issues[i];
+					if (issue.id.match(/\d+/)[0] === issueId) {
+						return issue;
+					}
+				}
+				return null;
+			}
+
+			var issueHandler = new IssueHandler();
+			issueHandler.addIssue({id: "CSAN-111", column: "In Development"});
+			issueHandler.addIssue({id: "CSAN-112", column: "Awaiting QA"});
+			issueHandler.addIssue({id: "CSAN-113", column: "Code Review"});
+			issueHandler.addIssue({id: "CSAN-114", column: "Backlog"});
+			issueHandler.addIssue({id: "CSAN-115", column: "In Test"});
 		</script>
 	</body>
 </html>
