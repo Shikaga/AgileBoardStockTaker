@@ -18,6 +18,61 @@
 		<div id="main"></div>
 		<script type="text/jsx">
 			/** @jsx React.DOM */
+			var ProjectPanel = React.createClass({
+				render: function() {
+					return <div>Select Project</div>
+				}
+			});
+
+			var LoginPanel = React.createClass({
+				getInitialState: function() {
+					return {
+						url: "https://jira.caplin.com",
+						username: "jonp",
+						password: ""
+					}
+				},
+				changeUrl: function(e) {
+					this.setState({
+						url: e.target.value
+					});
+				},
+				changeUsername: function(e) {
+					this.setState({
+						username: e.target.value
+					});
+				},
+				changePassword: function(e) {
+					this.setState({
+						password: e.target.value
+					});
+				},
+				login: function() {
+					this.props.login(this.state.url, this.state.username, this.state.password);
+				},
+				render: function() {
+					return <div className="panel panel-default">
+						<div className="panel-body">
+							<div className="input-group">
+								<span className="input-group-addon">Jira Url</span>
+								<input type="text" onChange={this.changeUrl} value={this.state.url} class="form-control" placeholder="Jira Url"/>
+							</div><br/>
+							<div className="input-group">
+								<span className="input-group-addon">Username</span>
+								<input type="text" onChange={this.changeUsername} value={this.state.username} class="form-control" placeholder="Username"/>
+							</div><br/>
+							<div className="input-group">
+								<span className="input-group-addon">Password</span>
+								<input type="text" onChange={this.changePassword}  type="password" value={this.state.password} class="form-control" placeholder="Password"/>
+							</div>
+							<div className="panel-body">
+								<div className="col-xs-12 col-md-12"><button type="button" onClick={this.login} className="btn btn-success btn-block">Login</button></div>
+							</div>
+						</div>
+					</div>
+				}
+			});
+
 			var ChangedIssuePanel = React.createClass({
 				render: function() {
 					return <div>{this.props.issue.issueId} - {this.props.issue.columnName}</div>
@@ -182,7 +237,7 @@
 						issueId: "",
 						selectedIssueId: null,
 						issuesChanged: [],
-						showChanged: false
+						mode: "login"
 					}
 				},
 				doneClicked: function() {
@@ -194,7 +249,7 @@
 				completeClicked: function() {
 					console.log("asdf");
 					this.setState({
-						showChanged: true
+						mode: "changed"
 					});
 				},
 				numberClicked: function(number) {
@@ -209,7 +264,19 @@
 				},
 				moreClicked: function() {
 					this.setState({
-						showChanged: false
+						mode: "input"
+					});
+				},
+				login: function(url, username, password) {
+					getDataWithJSON(function(data) {
+						if (data && data.issues) {
+							data.issues.forEach(function(issue) {
+								issueHandler.addIssue({id: issue.key, column: issue.statusName});
+							});
+						}
+					}, username, password, url + "/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=63");
+					this.setState({
+						mode: "input"
 					});
 				},
 				render: function() {
@@ -218,9 +285,18 @@
 						minHeight: "50%",
 						maxHeight: "50%"
 					}
-					if (!this.state.showChanged) {
+					if (this.state.mode === "login") {
+						return <div className="container"><LoginPanel login={this.login}></LoginPanel></div>
+					} else if (this.state.mode === "project") {
+						return <div className="container"><ProjectPanel></ProjectPanel></div>
+					} else if (this.state.mode === "input") {
 						return <div className="container">
 							<div style={style}>
+								<div className="panel panel-default">
+									<div className="panel-body">
+										<div className="col-xs-12 col-md-12"><button type="button" className="btn btn-danger btn-block">Logout</button></div>
+									</div>
+								</div>
 								<IssuesPanel issueChanged={this.issueChanged} issueId={this.state.selectedIssueId}></IssuesPanel>
 								<IdInput issueId={this.state.issueId}></IdInput>
 							</div>
@@ -263,12 +339,11 @@
 			issueHandler.addIssue({id: "CSAN-113", column: "Code Review"});
 			issueHandler.addIssue({id: "CSAN-114", column: "Backlog"});
 			issueHandler.addIssue({id: "CSAN-115", column: "In Test"});*/
-			debugger;
-			getDataWithJSON = function(callback, requestUrl) {
+			getDataWithJSON = function(callback, username, password, requestUrl) {
 				var xhr = new XMLHttpRequest();
 				xhr.open("GET", "https://cors-anywhere.herokuapp.com/" + requestUrl)
 				if (this.username !== "") {
-					this.setAuthorizationHeader(xhr);
+					this.setAuthorizationHeader(xhr, username, password);
 				}
 				xhr.setRequestHeader("x-requested-with", "love");
 				xhr.send();
@@ -282,19 +357,10 @@
 				}
 			};
 
-			setAuthorizationHeader = function(xhr) {
-				var username = "username";
-				var password = "password";
+			setAuthorizationHeader = function(xhr, username, password) {
 				var authHeader = "Basic "+btoa(username + ":" + password);
 				xhr.setRequestHeader("Authorization", authHeader);
 			}
-
-			getDataWithJSON(function(data) {
-				data.issues.forEach(function(issue) {
-					issueHandler.addIssue({id: issue.key, column: issue.statusName});
-				});
-				debugger;
-			}, "https://jira.caplin.com/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=63");
 
 		</script>
 	</body>
