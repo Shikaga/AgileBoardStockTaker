@@ -41,7 +41,11 @@
 
 			var IdInput = React.createClass({
 				render: function() {
-					return <input value={this.props.issueId}/>
+					return <div className="input-group">
+							<span className="input-group-addon">CSAN-</span>
+							<input type="text" className="form-control" placeholder="" value={this.props.issueId}/>
+						</div>
+
 				}
 			});
 
@@ -119,11 +123,7 @@
 					return {};
 				},
 				render: function() {
-					var style = {
-						margin: "20px",
-						minHeight: "150px"
-					}
-					return <div style={style}><IssuePanel issueChanged={this.props.issueChanged} issueId={this.props.issueId}></IssuePanel></div>
+					return <div><IssuePanel issueChanged={this.props.issueChanged} issueId={this.props.issueId}></IssuePanel></div>
 				}
 			});
 
@@ -170,7 +170,7 @@
 						this.props.buttonClicked(this.props.text);
 					}.bind(this);
 					var style = {
-						height: "70px"
+						height: "10%"
 					}
 					return <div className="col-xs-4 col-md-4"><button style={style} className="btn btn-default btn-block" onClick={onClick}>{this.props.text}</button></div>
 				}
@@ -213,11 +213,20 @@
 					});
 				},
 				render: function() {
+					var style = {
+						margin: "20px",
+						minHeight: "50%",
+						maxHeight: "50%"
+					}
 					if (!this.state.showChanged) {
 						return <div className="container">
-							<IssuesPanel issueChanged={this.issueChanged} issueId={this.state.selectedIssueId}></IssuesPanel>
-							<IdInput issueId={this.state.issueId}></IdInput>
-							<NumberDiv numberClicked={this.numberClicked} completeClicked={this.completeClicked} doneClicked={this.doneClicked}></NumberDiv>
+							<div style={style}>
+								<IssuesPanel issueChanged={this.issueChanged} issueId={this.state.selectedIssueId}></IssuesPanel>
+								<IdInput issueId={this.state.issueId}></IdInput>
+							</div>
+							<div style={style}>
+								<NumberDiv numberClicked={this.numberClicked} completeClicked={this.completeClicked} doneClicked={this.doneClicked}></NumberDiv>
+							</div>
 						</div>;
 					} else {
 						return <div className="container">
@@ -274,11 +283,12 @@
 			};
 
 			setAuthorizationHeader = function(xhr) {
-			var username = "username";
-			var password = "password";
-			var authHeader = "Basic "+btoa(username + ":" + password);
-			xhr.setRequestHeader("Authorization", authHeader);
+				var username = "username";
+				var password = "password";
+				var authHeader = "Basic "+btoa(username + ":" + password);
+				xhr.setRequestHeader("Authorization", authHeader);
 			}
+
 			getDataWithJSON(function(data) {
 				data.issues.forEach(function(issue) {
 					issueHandler.addIssue({id: issue.key, column: issue.statusName});
