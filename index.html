@@ -18,9 +18,57 @@
 		<div id="main"></div>
 		<script type="text/jsx">
 			/** @jsx React.DOM */
-			var ProjectPanel = React.createClass({
+			var ProjectLi = React.createClass({
+				onClick: function() {
+					this.props.onClick(this.props.project);
+				},
 				render: function() {
-					return <div>Select Project</div>
+					return <li><a href="#" onClick={this.onClick}>{this.props.project.name}</a></li>
+				}
+			});
+
+			var ProjectSelector = React.createClass({
+				getInitialState: function() {
+					return {selectedProject: this.props.projectData[0]}//this.props.selected}
+				},
+				onClick: function(project) {
+					if (project.name !== this.state.selectedText) {
+						this.setState({
+							selectedProject: project
+						});
+						//this.props.columnChanged(text);
+					}
+				},
+				selectProject: function() {
+					this.props.selectProject(this.state.selectedProject);
+				},
+				render: function() {
+					var options = [];
+					this.props.projectData.forEach(function(project) {
+						options.push(<ProjectLi onClick={this.onClick} project={project}></ProjectLi>);
+					}.bind(this));
+					return <div>
+								<span className="btn-group">
+									<button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown">
+										{this.state.selectedProject.name}<span className="caret"></span>
+									</button>
+									<ul className="dropdown-menu" role="menu">
+										{options}
+									</ul>
+								</span>
+								<div className="panel-body">
+									<div className="col-xs-12 col-md-12"><button type="button" onClick={this.selectProject} className="btn btn-success btn-block">Select</button></div>
+								</div>
+							</div>
+				}
+			});
+
+			var ProjectPanel = React.createClass({
+				selectProject: function(project) {
+					this.props.selectProject(project);
+				},
+				render: function() {
+					return <div><ProjectSelector selectProject={this.selectProject} projectData={this.props.projectData}></ProjectSelector></div>
 				}
 			});
 
@@ -97,7 +145,7 @@
 			var IdInput = React.createClass({
 				render: function() {
 					return <div className="input-group">
-							<span className="input-group-addon">CSAN-</span>
+							<span className="input-group-addon">{this.props.projectKey}-</span>
 							<input type="text" className="form-control" placeholder="" value={this.props.issueId}/>
 						</div>
 
@@ -115,7 +163,6 @@
 
 			var ColumnSelector = React.createClass({
 				getInitialState: function() {
-					console.log("!!!");
 					return {selectedText: this.props.selected}
 				},
 				onClick: function(text) {
@@ -276,8 +323,14 @@
 						}
 					}, username, password, url + "/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=63");
 					this.setState({
-						mode: "input"
+						mode: "project"
 					});
+				},
+				selectProject: function(project) {
+					this.setState({
+						selectedProject: project,
+						mode: "input"
+					})
 				},
 				render: function() {
 					var style = {
@@ -288,7 +341,12 @@
 					if (this.state.mode === "login") {
 						return <div className="container"><LoginPanel login={this.login}></LoginPanel></div>
 					} else if (this.state.mode === "project") {
-						return <div className="container"><ProjectPanel></ProjectPanel></div>
+						var projectData = [
+							{name: 'FatBoy', id: 12, key: 'FB'},
+							{name: 'Sidewinder', id: 42, key: 'SIDE'},
+							{name: 'Santander', id: 56, key: 'CSAN'}
+						];
+						return <div className="container"><ProjectPanel selectProject={this.selectProject} projectData={projectData}></ProjectPanel></div>
 					} else if (this.state.mode === "input") {
 						return <div className="container">
 							<div style={style}>
@@ -298,7 +356,7 @@
 									</div>
 								</div>
 								<IssuesPanel issueChanged={this.issueChanged} issueId={this.state.selectedIssueId}></IssuesPanel>
-								<IdInput issueId={this.state.issueId}></IdInput>
+								<IdInput projectKey={this.state.selectedProject.key} issueId={this.state.issueId}></IdInput>
 							</div>
 							<div style={style}>
 								<NumberDiv numberClicked={this.numberClicked} completeClicked={this.completeClicked} doneClicked={this.doneClicked}></NumberDiv>
@@ -334,11 +392,6 @@
 			}
 
 			var issueHandler = new IssueHandler();
-			/*issueHandler.addIssue({id: "CSAN-111", column: "In Development"});
-			issueHandler.addIssue({id: "CSAN-112", column: "Awaiting QA"});
-			issueHandler.addIssue({id: "CSAN-113", column: "Code Review"});
-			issueHandler.addIssue({id: "CSAN-114", column: "Backlog"});
-			issueHandler.addIssue({id: "CSAN-115", column: "In Test"});*/
 			getDataWithJSON = function(callback, username, password, requestUrl) {
 				var xhr = new XMLHttpRequest();
 				xhr.open("GET", "https://cors-anywhere.herokuapp.com/" + requestUrl)
