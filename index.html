@@ -315,22 +315,25 @@
 					});
 				},
 				login: function(url, username, password) {
+					this.setState({
+						url: url,
+						username: username,
+						password: password,
+						mode: "project"
+					});
+				},
+				selectProject: function(project) {
 					getDataWithJSON(function(data) {
 						if (data && data.issues) {
 							data.issues.forEach(function(issue) {
 								issueHandler.addIssue({id: issue.key, column: issue.statusName});
 							});
+							this.setState({
+								selectedProject: project,
+								mode: "input"
+							})
 						}
-					}, username, password, url + "/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=63");
-					this.setState({
-						mode: "project"
-					});
-				},
-				selectProject: function(project) {
-					this.setState({
-						selectedProject: project,
-						mode: "input"
-					})
+					}.bind(this), this.state.username, this.state.password, this.state.url + "/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=" + project.id);
 				},
 				render: function() {
 					var style = {
@@ -344,7 +347,7 @@
 						var projectData = [
 							{name: 'FatBoy', id: 12, key: 'FB'},
 							{name: 'Sidewinder', id: 42, key: 'SIDE'},
-							{name: 'Santander', id: 56, key: 'CSAN'}
+							{name: 'Santander', id: 63, key: 'CSAN'}
 						];
 						return <div className="container"><ProjectPanel selectProject={this.selectProject} projectData={projectData}></ProjectPanel></div>
 					} else if (this.state.mode === "input") {
