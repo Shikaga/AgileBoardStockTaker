@@ -28,8 +28,18 @@
 			});
 
 			var ProjectSelector = React.createClass({
+				componentWillReceiveProps: function(nextProps) {
+					if (nextProps.projectData && nextProps.projectData[0]) {
+						this.setState({selectedProject: nextProps.projectData[0]});
+					} else {
+						this.setState({selectedProject: null});
+					}
+				},
 				getInitialState: function() {
-					return {selectedProject: this.props.projectData[0]}//this.props.selected}
+					if (this.props.projectData && this.props.projectData[0]) {
+						return {selectedProject: this.props.projectData[0]}
+					}
+						return {selectedProject: null}
 				},
 				onClick: function(project) {
 					if (project.name !== this.state.selectedText) {
@@ -44,22 +54,26 @@
 				},
 				render: function() {
 					var options = [];
-					this.props.projectData.forEach(function(project) {
-						options.push(<ProjectLi onClick={this.onClick} project={project}></ProjectLi>);
-					}.bind(this));
-					return <div>
-								<span className="btn-group">
-									<button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown">
-										{this.state.selectedProject.name}<span className="caret"></span>
-									</button>
-									<ul className="dropdown-menu" role="menu">
-										{options}
-									</ul>
-								</span>
-								<div className="panel-body">
-									<div className="col-xs-12 col-md-12"><button type="button" onClick={this.selectProject} className="btn btn-success btn-block">Select</button></div>
+					if (this.props.projectData) {
+						this.props.projectData.forEach(function(project) {
+							options.push(<ProjectLi onClick={this.onClick} project={project}></ProjectLi>);
+						}.bind(this));
+						return <div>
+									<span className="btn-group">
+										<button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown">
+											{this.state.selectedProject.name}<span className="caret"></span>
+										</button>
+										<ul className="dropdown-menu" role="menu">
+											{options}
+										</ul>
+									</span>
+									<div className="panel-body">
+										<div className="col-xs-12 col-md-12"><button type="button" onClick={this.selectProject} className="btn btn-success btn-block">Select</button></div>
+									</div>
 								</div>
-							</div>
+					} else {
+						return <div>Loading...</div>
+					}
 				}
 			});
 
@@ -284,7 +298,8 @@
 						issueId: "",
 						selectedIssueId: null,
 						issuesChanged: [],
-						mode: "login"
+						mode: "login",
+						projectData: null
 					}
 				},
 				doneClicked: function() {
@@ -321,18 +336,35 @@
 						password: password,
 						mode: "project"
 					});
+					getDataWithJSON(function(data) {
+						var projects = [];
+						data.views.forEach(function(view) {
+							console.log(view.name, view.id, view.key, view);
+							projects.push({name: view.name, id: view.id, key: view.key})
+						});
+						this.setState({projectData: projects});
+					}.bind(this), username, password, url + "/rest/greenhopper/1.0/rapidviews/viewsData.json");
+				},
+				saveLoginDetails: function() {
+
 				},
 				selectProject: function(project) {
-					getDataWithJSON(function(data) {
-						if (data && data.issues) {
-							data.issues.forEach(function(issue) {
-								issueHandler.addIssue({id: issue.key, column: issue.statusName});
-							});
-							this.setState({
-								selectedProject: project,
-								mode: "input"
-							})
-						}
+					getDataWithJSON(function(projectData) {
+						var key = projectData.issues[0].key.substr(0,projectData.issues[0].key.indexOf("-"));
+						project.key = key;
+						getDataWithJSON(function(data) {
+							if (data && data.issues) {
+								this.saveLoginDetails();
+								data.issues.forEach(function(issue) {
+									issueHandler.addIssue({id: issue.key, column: issue.statusName});
+								});
+								this.setState({
+									selectedProject: project,
+									mode: "input"
+								})
+							}
+						}.bind(this), this.state.username, this.state.password, this.state.url + "/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=" + project.id);
+
 					}.bind(this), this.state.username, this.state.password, this.state.url + "/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=" + project.id);
 				},
 				render: function() {
@@ -344,12 +376,8 @@
 					if (this.state.mode === "login") {
 						return <div className="container"><LoginPanel login={this.login}></LoginPanel></div>
 					} else if (this.state.mode === "project") {
-						var projectData = [
-							{name: 'FatBoy', id: 12, key: 'FB'},
-							{name: 'Sidewinder', id: 42, key: 'SIDE'},
-							{name: 'Santander', id: 63, key: 'CSAN'}
-						];
-						return <div className="container"><ProjectPanel selectProject={this.selectProject} projectData={projectData}></ProjectPanel></div>
+
+						return <div className="container"><ProjectPanel selectProject={this.selectProject} projectData={this.state.projectData}></ProjectPanel></div>
 					} else if (this.state.mode === "input") {
 						return <div className="container">
 							<div style={style}>
