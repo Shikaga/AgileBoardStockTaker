@@ -18,7 +18,7 @@
 		<div id="main"></div>
 		<script type="text/jsx">
 			/** @jsx React.DOM */
-			var ProjectLi = React.createClass({
+			/*var ProjectLi = React.createClass({
 				onClick: function() {
 					this.props.onClick(this.props.project);
 				},
@@ -84,7 +84,7 @@
 				render: function() {
 					return <div><ProjectSelector selectProject={this.selectProject} projectData={this.props.projectData}></ProjectSelector></div>
 				}
-			});
+			});*/
 
 			var LoginPanel = React.createClass({
 				getInitialState: function() {
@@ -134,7 +134,8 @@
 					</div>
 				}
 			});
-
+			
+			/*
 			var ChangedIssuePanel = React.createClass({
 				render: function() {
 					return <div>{this.props.issue.issueId} - {this.props.issue.columnName}</div>
@@ -290,7 +291,7 @@
 					}
 					return <div className="col-xs-4 col-md-4"><button style={style} className="btn btn-default btn-block" onClick={onClick}>{this.props.text}</button></div>
 				}
-			});
+			}); */
 
 			var AgileBoardStockTaker = React.createClass({
 				getInitialState: function() {
@@ -330,42 +331,47 @@
 					});
 				},
 				login: function(url, username, password) {
+					this.state.url = url;
+					this.state.username = username;
+					this.state.password = password;
 					this.setState({
 						url: url,
 						username: username,
 						password: password,
-						mode: "project"
+						mode: "loggedIn"
 					});
-					getDataWithJSON(function(data) {
-						var projects = [];
-						data.views.forEach(function(view) {
-							console.log(view.name, view.id, view.key, view);
-							projects.push({name: view.name, id: view.id, key: view.key})
-						});
-						this.setState({projectData: projects});
-					}.bind(this), username, password, url + "/rest/greenhopper/1.0/rapidviews/viewsData.json");
+					this.selectProject(80);
+					// getDataWithJSON(function(data) {
+					// 	var projects = [];
+					// 	data.views.forEach(function(view) {
+					// 		console.log(view.name, view.id, view.key, view);
+					// 		projects.push({name: view.name, id: view.id, key: view.key})
+					// 	});
+					// 	this.setState({projectData: projects});
+					// }.bind(this), username, password, url + "/rest/greenhopper/1.0/rapidviews/viewsData.json");
 				},
 				saveLoginDetails: function() {
 
 				},
-				selectProject: function(project) {
+				selectProject: function(projectId) {
 					getDataWithJSON(function(projectData) {
 						var key = projectData.issues[0].key.substr(0,projectData.issues[0].key.indexOf("-"));
-						project.key = key;
+						//project.key = key;
 						getDataWithJSON(function(data) {
 							if (data && data.issues) {
+								console.log("HOORAY!", arguments);
 								this.saveLoginDetails();
 								data.issues.forEach(function(issue) {
 									issueHandler.addIssue({id: issue.key, column: issue.statusName});
 								});
-								this.setState({
-									selectedProject: project,
-									mode: "input"
-								})
+								// this.setState({
+								// 	selectedProject: project,
+								// 	mode: "input"
+								// })
 							}
-						}.bind(this), this.state.username, this.state.password, this.state.url + "/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=" + project.id);
+						}.bind(this), this.state.username, this.state.password, this.state.url + "/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=" + projectId);
 
-					}.bind(this), this.state.username, this.state.password, this.state.url + "/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=" + project.id);
+					}.bind(this), this.state.username, this.state.password, this.state.url + "/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=" + projectId);
 				},
 				render: function() {
 					var style = {
@@ -375,28 +381,11 @@
 					}
 					if (this.state.mode === "login") {
 						return <div className="container"><LoginPanel login={this.login}></LoginPanel></div>
-					} else if (this.state.mode === "project") {
-
-						return <div className="container"><ProjectPanel selectProject={this.selectProject} projectData={this.state.projectData}></ProjectPanel></div>
-					} else if (this.state.mode === "input") {
-						return <div className="container">
-							<div style={style}>
-								<div className="panel panel-default">
-									<div className="panel-body">
-										<div className="col-xs-12 col-md-12"><button type="button" className="btn btn-danger btn-block">Logout</button></div>
-									</div>
-								</div>
-								<IssuesPanel issueChanged={this.issueChanged} issueId={this.state.selectedIssueId}></IssuesPanel>
-								<IdInput projectKey={this.state.selectedProject.key} issueId={this.state.issueId}></IdInput>
-							</div>
-							<div style={style}>
-								<NumberDiv numberClicked={this.numberClicked} completeClicked={this.completeClicked} doneClicked={this.doneClicked}></NumberDiv>
-							</div>
-						</div>;
+					} else if (this.state.mode === "loggedIn") {
+						return <div className="container">Hooray!</div>
 					} else {
 						return <div className="container">
-							<ChangedIssuesPanel issues={this.state.issuesChanged}></ChangedIssuesPanel>
-							<NumberButton buttonClicked={this.moreClicked} text="Add More"></NumberButton>
+							Something went terribly wrong...
 						</div>
 					}
 				}
