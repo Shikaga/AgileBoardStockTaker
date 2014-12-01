@@ -16,75 +16,19 @@
 	</head>
 	<body>
 		<div id="main"></div>
+		<script type="text/javascript">
+		weekMap = {};
+		var startWeek = new Date(2014,7,4);
+		for (var i=0; i < 100; i++) {
+			var thisWeek = new Date(startWeek.getTime());
+			thisWeek.setDate(startWeek.getDate() + i*7);
+			weekMap[thisWeek.getTime()] = {raised: [], resolved: []}
+		}
+
+
+		</script>
 		<script type="text/jsx">
 			/** @jsx React.DOM */
-			var ProjectLi = React.createClass({
-				onClick: function() {
-					this.props.onClick(this.props.project);
-				},
-				render: function() {
-					return <li><a href="#" onClick={this.onClick}>{this.props.project.name}</a></li>
-				}
-			});
-
-			var ProjectSelector = React.createClass({
-				componentWillReceiveProps: function(nextProps) {
-					if (nextProps.projectData && nextProps.projectData[0]) {
-						this.setState({selectedProject: nextProps.projectData[0]});
-					} else {
-						this.setState({selectedProject: null});
-					}
-				},
-				getInitialState: function() {
-					if (this.props.projectData && this.props.projectData[0]) {
-						return {selectedProject: this.props.projectData[0]}
-					}
-						return {selectedProject: null}
-				},
-				onClick: function(project) {
-					if (project.name !== this.state.selectedText) {
-						this.setState({
-							selectedProject: project
-						});
-						//this.props.columnChanged(text);
-					}
-				},
-				selectProject: function() {
-					this.props.selectProject(this.state.selectedProject);
-				},
-				render: function() {
-					var options = [];
-					if (this.props.projectData) {
-						this.props.projectData.forEach(function(project) {
-							options.push(<ProjectLi onClick={this.onClick} project={project}></ProjectLi>);
-						}.bind(this));
-						return <div>
-									<span className="btn-group">
-										<button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown">
-											{this.state.selectedProject.name}<span className="caret"></span>
-										</button>
-										<ul className="dropdown-menu" role="menu">
-											{options}
-										</ul>
-									</span>
-									<div className="panel-body">
-										<div className="col-xs-12 col-md-12"><button type="button" onClick={this.selectProject} className="btn btn-success btn-block">Select</button></div>
-									</div>
-								</div>
-					} else {
-						return <div>Loading...</div>
-					}
-				}
-			});
-
-			var ProjectPanel = React.createClass({
-				selectProject: function(project) {
-					this.props.selectProject(project);
-				},
-				render: function() {
-					return <div><ProjectSelector selectProject={this.selectProject} projectData={this.props.projectData}></ProjectSelector></div>
-				}
-			});
 
 			var LoginPanel = React.createClass({
 				getInitialState: function() {
@@ -134,163 +78,7 @@
 					</div>
 				}
 			});
-
-			var ChangedIssuePanel = React.createClass({
-				render: function() {
-					return <div>{this.props.issue.issueId} - {this.props.issue.columnName}</div>
-				}
-			});
-
-			var ChangedIssuesPanel = React.createClass({
-				render: function() {
-					if (this.props.issues) {
-
-						var issues = [];
-						this.props.issues.forEach(function(issue) {
-							issues.push(<ChangedIssuePanel issue={issue}></ChangedIssuePanel>);
-						});
-						return <div>{issues}</div>
-					} else {
-						return <div></div>
-					}
-				}
-			});
-
-			var IdInput = React.createClass({
-				render: function() {
-					return <div className="input-group">
-							<span className="input-group-addon">{this.props.projectKey}-</span>
-							<input type="text" className="form-control" placeholder="" value={this.props.issueId}/>
-						</div>
-
-				}
-			});
-
-			var ColumnLi = React.createClass({
-				onClick: function() {
-					this.props.onClick(this.props.name);
-				},
-				render: function() {
-					return <li><a href="#" onClick={this.onClick}>{this.props.name}</a></li>
-				}
-			});
-
-			var ColumnSelector = React.createClass({
-				getInitialState: function() {
-					return {selectedText: this.props.selected}
-				},
-				onClick: function(text) {
-					if (text !== this.state.selectedText) {
-						this.setState({
-							selectedText: text
-						});
-						this.props.columnChanged(text);
-					}
-				},
-				render: function() {
-					var optionStrings = ['Backlog', 'Development', 'Code Review', 'Awaiting Test', 'In Test', 'Done'];
-					var options = [];
-					optionStrings.forEach(function(optionString) {
-						options.push(<ColumnLi onClick={this.onClick} name={optionString}></ColumnLi>);
-					 }.bind(this));
-					return <span className="btn-group">
-						<button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown">
-							{this.state.selectedText}<span className="caret"></span>
-						</button>
-						<ul className="dropdown-menu" role="menu">
-							{options}
-						</ul>
-					</span>
-				}
-			});
-
-			var IssuePanel = React.createClass({
-				getInitialState: function() {
-					console.log("XXX");
-					return {
-
-					};
-				},
-				columnChanged: function(columnName) {
-					this.props.issueChanged({issueId: this.props.issueId, columnName: columnName});
-				},
-				render: function() {
-					if (this.props.issueId) {
-						var issue = issueHandler.getIssue(this.props.issueId);
-						if (issue) {
-							return <div className="panel panel-default">
-								<div className="panel-body">
-									<span>{issue.id}</span>
-									<ColumnSelector columnChanged={this.columnChanged} selected={issue.column}></ColumnSelector>
-								</div>
-							</div>
-						} else {
-							return <div></div>
-						}
-					} else {
-						return <div></div>
-					}
-				}
-			});
-
-			var IssuesPanel = React.createClass({
-				getInitialState: function() {
-					console.log("YYY");
-					return {};
-				},
-				render: function() {
-					return <div><IssuePanel issueChanged={this.props.issueChanged} issueId={this.props.issueId}></IssuePanel></div>
-				}
-			});
-
-			var NumberDiv = React.createClass({
-				doneClicked: function() {
-					this.props.doneClicked();
-				},
-				completeClicked: function() {
-					this.props.completeClicked();
-				},
-				numberClicked:function(number) {
-					this.props.numberClicked(number);
-				},
-				render: function() {
-					var numberRows = [];
-					for (var i=0; i < 3; i++) {
-						var buttons = [];
-						for (var j=1; j < 4; j++) {
-							buttons.push(<NumberButton buttonClicked={this.numberClicked} text={i*3+j}></NumberButton>);
-						}
-						numberRows.push(<ButtonRow buttonClicked={this.numberClicked} buttons={buttons}></ButtonRow>);
-					}
-					var buttons = [];
-					var zero = 0;
-					buttons.push(<NumberButton buttonClicked={this.numberClicked} text={zero}></NumberButton>);
-					buttons.push(<NumberButton buttonClicked={this.doneClicked} text="Done"></NumberButton>);
-					buttons.push(<NumberButton buttonClicked={this.completeClicked} text="Complete"></NumberButton>);
-					numberRows.push(<ButtonRow buttons={buttons}></ButtonRow>);
-
-					return <div><div className="row">{numberRows}</div></div>;
-				}
-			});
-
-			var ButtonRow = React.createClass({
-				render: function() {
-
-					return <div className="row">{this.props.buttons}</div>
-				}
-			});
-
-			var NumberButton = React.createClass({
-				render: function() {
-					var onClick = function() {
-						this.props.buttonClicked(this.props.text);
-					}.bind(this);
-					var style = {
-						height: "10%"
-					}
-					return <div className="col-xs-4 col-md-4"><button style={style} className="btn btn-default btn-block" onClick={onClick}>{this.props.text}</button></div>
-				}
-			});
+		
 
 			var AgileBoardStockTaker = React.createClass({
 				getInitialState: function() {
@@ -299,7 +87,8 @@
 						selectedIssueId: null,
 						issuesChanged: [],
 						mode: "login",
-						projectData: null
+						projectData: null,
+						issues: null
 					}
 				},
 				doneClicked: function() {
@@ -330,77 +119,178 @@
 					});
 				},
 				login: function(url, username, password) {
+					this.state.url = url;
+					this.state.username = username;
+					this.state.password = password;
 					this.setState({
 						url: url,
 						username: username,
 						password: password,
-						mode: "project"
+						mode: "loggedIn"
 					});
-					getDataWithJSON(function(data) {
-						var projects = [];
-						data.views.forEach(function(view) {
-							console.log(view.name, view.id, view.key, view);
-							projects.push({name: view.name, id: view.id, key: view.key})
-						});
-						this.setState({projectData: projects});
-					}.bind(this), username, password, url + "/rest/greenhopper/1.0/rapidviews/viewsData.json");
+					this.selectProject(80);
+					// getDataWithJSON(function(data) {
+					// 	var projects = [];
+					// 	data.views.forEach(function(view) {
+					// 		console.log(view.name, view.id, view.key, view);
+					// 		projects.push({name: view.name, id: view.id, key: view.key})
+					// 	});
+					// 	this.setState({projectData: projects});
+					// }.bind(this), username, password, url + "/rest/greenhopper/1.0/rapidviews/viewsData.json");
 				},
 				saveLoginDetails: function() {
 
 				},
-				selectProject: function(project) {
-					getDataWithJSON(function(projectData) {
-						var key = projectData.issues[0].key.substr(0,projectData.issues[0].key.indexOf("-"));
-						project.key = key;
-						getDataWithJSON(function(data) {
-							if (data && data.issues) {
-								this.saveLoginDetails();
-								data.issues.forEach(function(issue) {
-									issueHandler.addIssue({id: issue.key, column: issue.statusName});
-								});
-								this.setState({
-									selectedProject: project,
-									mode: "input"
-								})
-							}
-						}.bind(this), this.state.username, this.state.password, this.state.url + "/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=" + project.id);
+				parseDate: function(dateTimeString) {
+					var dateString = dateTimeString.substr(0,dateTimeString.indexOf("T"));
+					var dateArray = dateString.split("-");
+					var date = new Date(dateArray[0],dateArray[1]-1,dateArray[2]);
+					return date;
 
-					}.bind(this), this.state.username, this.state.password, this.state.url + "/rest/greenhopper/1.0/xboard/plan/backlog/data.json?rapidViewId=" + project.id);
+				},
+				selectProject: function(projectId) {
+					getDataWithJSON(function(projectData) {
+						var getOrderedIssues = function(x) {
+							var issues = [];
+							x.issues.forEach(function(issue) {
+								console.log(issue,issue.key);
+								var finalState = null;
+								var finalDate = null;
+								issue.changelog.histories.forEach(function(history) {
+								var dateOccured = this.parseDate(history.created);
+								history.items.forEach(function(item) {
+									if (item.field == "status" && item.toString == "Resolved") {
+										finalState = item.toString;
+										finalDate = dateOccured;
+									}
+								}.bind(this));
+							}.bind(this))
+							issues.push({key: issue.key, createdDate: this.parseDate(issue.fields.created), resolvedDate: finalDate})
+						}.bind(this))
+							this.setState({issues: issues});
+						}.bind(this)
+
+						console.log(getOrderedIssues(projectData));
+
+					}.bind(this), this.state.username, this.state.password, this.state.url + "/rest/api/latest/search?jql=project=" + projectPlaceholder + " AND issuetype=Bug&maxResults=1000&expand=changelog");
 				},
 				render: function() {
+					console.log("!!!!");
+					if (this.state.mode === "login") {
+						return <div className="container"><LoginPanel login={this.login}></LoginPanel></div>
+					} else if (this.state.mode === "loggedIn") {
+						return StatisticsPanel({issues: this.state.issues})
+					} else {
+						return <div className="container">
+							Something went terribly wrong...
+						</div>
+					}
+				}
+			});
+
+			var StatisticsPanel = React.createClass({
+				getMondayForDate: function(date) {
+					if (date) {
+						var returnDate = new Date(date.getYear() + 1900, date.getMonth(), date.getDate());
+						returnDate.setDate(returnDate.getDate() - returnDate.getDay() + 1);
+						return returnDate;
+					} else {
+						return null;
+					}
+					
+				},
+				populateRaised: function(x) {
+					if (x) {
+						x.forEach(function(el) {
+							var monday = this.getMondayForDate(el.createdDate);
+							weekMap[monday.getTime()].raised.push(el);
+						}.bind(this))	
+					}
+					
+				},
+				populateResolved: function(x) {
+					if (x) {
+						x.forEach(function(el) {
+							var monday = this.getMondayForDate(el.resolvedDate);
+							if (monday) {
+								weekMap[monday.getTime()].resolved.push(el);	
+							}
+						}.bind(this))	
+					}
+					
+				},
+				render: function() {
+					console.log("???");
 					var style = {
 						margin: "20px",
 						minHeight: "50%",
 						maxHeight: "50%"
 					}
-					if (this.state.mode === "login") {
-						return <div className="container"><LoginPanel login={this.login}></LoginPanel></div>
-					} else if (this.state.mode === "project") {
+					this.populateRaised(this.props.issues);
+					this.populateResolved(this.props.issues);
 
-						return <div className="container"><ProjectPanel selectProject={this.selectProject} projectData={this.state.projectData}></ProjectPanel></div>
-					} else if (this.state.mode === "input") {
-						return <div className="container">
-							<div style={style}>
-								<div className="panel panel-default">
-									<div className="panel-body">
-										<div className="col-xs-12 col-md-12"><button type="button" className="btn btn-danger btn-block">Logout</button></div>
-									</div>
-								</div>
-								<IssuesPanel issueChanged={this.issueChanged} issueId={this.state.selectedIssueId}></IssuesPanel>
-								<IdInput projectKey={this.state.selectedProject.key} issueId={this.state.issueId}></IdInput>
-							</div>
-							<div style={style}>
-								<NumberDiv numberClicked={this.numberClicked} completeClicked={this.completeClicked} doneClicked={this.doneClicked}></NumberDiv>
-							</div>
-						</div>;
-					} else {
-						return <div className="container">
-							<ChangedIssuesPanel issues={this.state.issuesChanged}></ChangedIssuesPanel>
-							<NumberButton buttonClicked={this.moreClicked} text="Add More"></NumberButton>
-						</div>
+					var weekElements = [];
+					for (var i in weekMap) {
+						if (weekMap[i].raised.length > 0 || weekMap[i].resolved.length > 0) {
+							var week = weekMap[i];
+							var date = new Date();
+							date.setTime(i);
+
+							weekElements.push(WeekPanel({date: date, raisedIssues: week.raised, resolvedIssues: week.resolved}))
+						}
 					}
+
+					return <div className="container">
+						{weekElements}
+					</div>
 				}
-			});
+			})
+
+			var WeekPanel = React.createClass({
+				render: function() {
+					styleMain = {
+						clear:"both"
+					}
+					styleColumn = {
+						float:"left",
+						width: "300px"
+					}
+					dataStyle = {
+						height: "0px"
+					}
+
+					var raised = [];
+					this.props.raisedIssues.forEach(function(issue) {
+						raised.push(IssuePanel({issue: issue}));
+					})
+
+					var resolved = [];
+					this.props.resolvedIssues.forEach(function(issue) {
+						resolved.push(IssuePanel({issue: issue}));
+					})
+
+					var createdId = Math.random().toString().substr(2);
+					var resolvedId = Math.random().toString().substr(2);
+
+					return <div style={styleMain}>
+							<h1>{this.props.date.getDate()}/{this.props.date.getMonth() + 1}/{this.props.date.getYear() + 1900}</h1>
+							<div style={styleColumn}>
+								<h3><a data-toggle="collapse" data-target={"#" + createdId} aria-expanded="false" aria-controls={createdId}>Raised {raised.length}</a></h3>
+								<div id={createdId} style={dataStyle} className="collapse">{raised}</div>
+							</div>
+							<div style={styleColumn}>
+								<h3><a data-toggle="collapse" data-target={"#" + resolvedId} aria-expanded="false" aria-controls={resolvedId}>Resolved  {resolved.length}</a></h3>
+								<div id={resolvedId} style={dataStyle} className="collapse"> {resolved}</div>
+							</div>
+							</div>
+				}
+			})
+
+			var IssuePanel = React.createClass({
+				render: function() {
+					return <div>{this.props.issue.key}</div>
+				}
+			})
 
 			React.renderComponent(<AgileBoardStockTaker/>, document.getElementById('main'));
 
