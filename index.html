@@ -53,6 +53,11 @@
 						password: e.target.value
 					});
 				},
+				handleKeyPress: function(e,f,g) {
+					if (e.which == 13) {
+						this.login();
+					}
+				},
 				login: function() {
 					this.props.login(this.state.url, this.state.username, this.state.password);
 				},
@@ -69,7 +74,7 @@
 							</div><br/>
 							<div className="input-group">
 								<span className="input-group-addon">Password</span>
-								<input type="text" onChange={this.changePassword}  type="password" value={this.state.password} class="form-control" placeholder="Password"/>
+								<input type="text" onKeyUp={this.handleKeyPress} onChange={this.changePassword}  type="password" value={this.state.password} class="form-control" placeholder="Password"/>
 							</div>
 							<div className="panel-body">
 								<div className="col-xs-12 col-md-12"><button type="button" onClick={this.login} className="btn btn-success btn-block">Login</button></div>
@@ -98,7 +103,6 @@
 					});
 				},
 				completeClicked: function() {
-					console.log("asdf");
 					this.setState({
 						mode: "changed"
 					});
@@ -119,6 +123,7 @@
 					});
 				},
 				login: function(url, username, password) {
+					window.url = url;
 					this.state.url = url;
 					this.state.username = username;
 					this.state.password = password;
@@ -150,10 +155,10 @@
 				},
 				selectProject: function(projectId) {
 					getDataWithJSON(function(projectData) {
+						console.log("data", projectData)
 						var getOrderedIssues = function(x) {
 							var issues = [];
 							x.issues.forEach(function(issue) {
-								console.log(issue,issue.key);
 								var finalState = null;
 								var finalDate = null;
 								issue.changelog.histories.forEach(function(history) {
@@ -165,17 +170,16 @@
 									}
 								}.bind(this));
 							}.bind(this))
-							issues.push({key: issue.key, createdDate: this.parseDate(issue.fields.created), resolvedDate: finalDate})
+							issues.push({summary: issue.fields.summary, key: issue.key, createdDate: this.parseDate(issue.fields.created), resolvedDate: finalDate})
 						}.bind(this))
 							this.setState({issues: issues});
 						}.bind(this)
 
-						console.log(getOrderedIssues(projectData));
+						getOrderedIssues(projectData);
 
 					}.bind(this), this.state.username, this.state.password, this.state.url + "/rest/api/latest/search?jql=project=" + window.location.search.substr(1) + " AND issuetype=Bug&maxResults=1000&expand=changelog");
 				},
 				render: function() {
-					console.log("!!!!");
 					if (this.state.mode === "login") {
 						return <div className="container"><LoginPanel login={this.login}></LoginPanel></div>
 					} else if (this.state.mode === "loggedIn") {
@@ -220,7 +224,6 @@
 					
 				},
 				render: function() {
-					console.log("???");
 					var style = {
 						margin: "20px",
 						minHeight: "50%",
@@ -288,7 +291,7 @@
 
 			var IssuePanel = React.createClass({
 				render: function() {
-					return <div>{this.props.issue.key}</div>
+					return <div><a target="_blank" href={url + "/browse/" + this.props.issue.key}>{this.props.issue.key}</a> : {this.props.issue.summary}</div>
 				}
 			})
 
